@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppHost1", "AppHost1\AppHost1.csproj", "{56B36233-A6A7-42E9-B330-91C930D92588}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database1", "Database1\Database1.csproj", "{5003246D-3B16-411B-A1D2-DFBFD504B3ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalDbSupport", "LocalDbSupport\LocalDbSupport.csproj", "{DB932214-8252-412F-889B-1C769ECC262C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{56B36233-A6A7-42E9-B330-91C930D92588}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56B36233-A6A7-42E9-B330-91C930D92588}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56B36233-A6A7-42E9-B330-91C930D92588}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56B36233-A6A7-42E9-B330-91C930D92588}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5003246D-3B16-411B-A1D2-DFBFD504B3ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5003246D-3B16-411B-A1D2-DFBFD504B3ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5003246D-3B16-411B-A1D2-DFBFD504B3ED}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{5003246D-3B16-411B-A1D2-DFBFD504B3ED}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{DB932214-8252-412F-889B-1C769ECC262C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB932214-8252-412F-889B-1C769ECC262C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB932214-8252-412F-889B-1C769ECC262C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB932214-8252-412F-889B-1C769ECC262C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

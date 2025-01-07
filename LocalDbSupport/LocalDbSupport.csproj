@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Aspire.Hosting" Version="9.0.0" />
+      <PackageReference Include="CommunityToolkit.Aspire.Hosting.SqlDatabaseProjects" Version="9.1.0" />
+      <PackageReference Include="MartinCostello.SqlLocalDb" Version="3.4.0" />
+      <PackageReference Include="Microsoft.SqlServer.DacFx" Version="162.5.57" />
+    </ItemGroup>
+
+</Project>

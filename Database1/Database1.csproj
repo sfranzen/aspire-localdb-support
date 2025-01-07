@@ -1,0 +1,20 @@
+<Project DefaultTargets="Build">
+    <Sdk Name="Microsoft.Build.Sql" Version="1.0.0-rc1" />
+    <PropertyGroup>
+        <Name>Database1</Name>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <RunSqlCodeAnalysis>True</RunSqlCodeAnalysis>
+        <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
+        <!-- For additional properties that can be set here, please refer to https://github.com/rr-wfm/MSBuild.Sdk.SqlProj#model-properties -->
+    </PropertyGroup>
+
+
+    <PropertyGroup>
+        <!-- Refer to https://github.com/rr-wfm/MSBuild.Sdk.SqlProj#publishing-support for supported publishing options -->
+    </PropertyGroup>
+
+
+    <ItemGroup>
+      <None Include="Table1.sql" />
+    </ItemGroup>
+</Project>
