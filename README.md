@@ -1,20 +1,25 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+This is a sample .NET Aspire project showcasing a custom integration for LocalDb, which allows you to manage and deploy to LocalDb instances.
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+The integration is demonstrated by a small AppHost [Program.cs](/AppHost1/Program.cs) example. If you already have some familiarity with Aspire applications, the syntax should look familiar:
+```cs
+using Projects;
+
+var builder = DistributedApplication.CreateBuilder(args);
+var localDb = builder.AddLocalDbInstance("TestDb");              // Register a named LocalDb instance
+var db = localDb.AddDatabase("Database", "Database1");           // Add a database resource to the instance
+builder.AddSqlProject<Database1>("Database1").WithReference(db); // Populate the database using the dacpac produced by the SQL project
+builder.Build().Run();
+```
 
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+The project can be built from the command line by running the following command from the root directory:
+`dotnet run --project .\AppHost1\AppHost1.csproj`
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+Of course it should also work using your favourite IDE.
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+# Related work
+In addition to the capabilities already provided with Aspire 9.0, the integration uses these NuGet packages:
+* [CommunityToolkit.Aspire.Hosting.SqlDatabaseProjects](https://github.com/CommunityToolkit/Aspire) for the nonstandard `SqlProjectResource` abstraction;
+* [MartinCostello.SqlLocalDb](https://github.com/martincostello/sqllocaldb) to manage LocalDb instances;
+* [Microsoft.SqlServer.DacFx](https://github.com/microsoft/DacFx) for deploying dacpac files to databases.
