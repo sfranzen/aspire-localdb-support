@@ -1,10 +1,8 @@
 ﻿using Aspire.Hosting.ApplicationModel;
 using LocalDbSupport;
-using MartinCostello.SqlLocalDb;
 using Microsoft.Build.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Aspire.Hosting;
 
@@ -19,18 +17,19 @@ public static class LocalDbBuilderExtensions
     public static IResourceBuilder<LocalDbInstanceResource> AddLocalDbInstance(this IDistributedApplicationBuilder builder, [ResourceName] string name)
     {
         var instanceRes = new LocalDbInstanceResource(name);
+        var healthCheckKey = $"{name}_check";
         string? connectionString = null;
 
-        builder.Eventing.Subscribe<BeforeResourceStartedEvent>(async (@event, token) =>
-        {
-            var logger = @event.Services.GetRequiredService<ILogger<LocalDbInstanceResource>>();
-            var notifier = @event.Services.GetRequiredService<ResourceNotificationService>();
-            await notifier.PublishUpdateAsync(instanceRes, state => state with { State = KnownResourceStates.Starting });
+        builder.Services.TryAddSingleton<LocalDbService>();
+        builder.Services
+            .AddSqlLocalDB()
+            .AddHealthChecks()
+            .AddSqlServer(sp => connectionString ?? throw new InvalidOperationException("Connection string is unavailable"), name: healthCheckKey);
 
+        builder.Eventing.Subscribe<BeforeResourceStartedEvent>(async (@event, token) => {
+            var dbService = @event.Services.GetRequiredService<LocalDbService>();
+            await dbService.CreateInstance(instanceRes);
             connectionString = await instanceRes.GetConnectionStringAsync(token);
-            logger.LogInformation("Creating LocalDb instance {name}", name);
-            instanceRes.Instance.Manage().Start();
-            await notifier.PublishUpdateAsync(instanceRes, state => state with { State = KnownResourceStates.Running, StartTimeStamp = DateTime.Now });
         });
 
         var initialState = new CustomResourceSnapshot
@@ -39,9 +38,6 @@ public static class LocalDbBuilderExtensions
             ResourceType = "LocalDbInstance",
             CreationTimeStamp = DateTime.Now
         };
-        var healthCheckKey = $"{name}_check";
-
-        builder.Services.AddHealthChecks().AddSqlServer(sp => connectionString ?? throw new InvalidOperationException("Connection string is unavailable"), name: healthCheckKey);
 
         return builder.AddResource(instanceRes).WithInitialState(initialState).WithHealthCheck(healthCheckKey);
     }
@@ -59,7 +55,7 @@ public static class LocalDbBuilderExtensions
         var localDatabase = new LocalDbDatabaseResource(name, databaseName, builder.Resource);
         var initialState = new CustomResourceSnapshot
         {
-            Properties = [],
+            Properties = [new("DatabaseName", databaseName)],
             ResourceType = "LocalDbDatabase",
             CreationTimeStamp = DateTime.Now
         };
