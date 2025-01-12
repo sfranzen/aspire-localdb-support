@@ -24,9 +24,11 @@ public static class SqlLocalDbBuilderExtensions
         builder.Services.AddHealthChecks()
             .AddSqlServer(sp => connectionString ?? throw new InvalidOperationException("Connection string is unavailable"), name: healthCheckKey);
 
-        builder.Eventing.Subscribe<BeforeResourceStartedEvent>(async (@event, token) => {
+        builder.Eventing.Subscribe<BeforeStartEvent>(async (@event, token) =>
+        {
             var dbService = @event.Services.GetRequiredService<SqlLocalDbService>();
             await dbService.GetOrCreateInstance(instanceRes);
+            await builder.Eventing.PublishAsync(new ConnectionStringAvailableEvent(instanceRes, @event.Services), token);
             connectionString = await instanceRes.GetConnectionStringAsync(token);
         });
 
@@ -57,6 +59,10 @@ public static class SqlLocalDbBuilderExtensions
             ResourceType = "LocalDbDatabase",
             CreationTimeStamp = DateTime.Now
         };
+        var eventing = builder.ApplicationBuilder.Eventing;
+
+        eventing.Subscribe<ConnectionStringAvailableEvent>(builder.Resource, (@event, token) =>
+            eventing.PublishAsync(new ConnectionStringAvailableEvent(localDatabase, @event.Services), token));
         builder.Resource.AddDatabase(name, databaseName);
         return builder.ApplicationBuilder.AddResource(localDatabase).WithInitialState(initialState);
     }
