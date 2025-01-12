@@ -18,7 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Database1\Database1.csproj" />
-      <ProjectReference Include="..\LocalDbSupport\LocalDbSupport.csproj" IsAspireProjectResource="false" />
+      <ProjectReference Include="..\SqlLocalDb.Hosting\SqlLocalDb.Hosting.csproj" IsAspireProjectResource="false" />
     </ItemGroup>
 
 </Project>

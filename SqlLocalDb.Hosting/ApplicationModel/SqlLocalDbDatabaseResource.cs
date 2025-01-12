@@ -1,8 +1,8 @@
 namespace Aspire.Hosting.ApplicationModel;
 
-public class LocalDbDatabaseResource(string name, string databaseName, LocalDbInstanceResource instance) : Resource(name), IResourceWithParent<LocalDbInstanceResource>, IResourceWithConnectionString
+public class SqlLocalDbDatabaseResource(string name, string databaseName, SqlLocalDbInstanceResource instance) : Resource(name), IResourceWithParent<SqlLocalDbInstanceResource>, IResourceWithConnectionString
 {
-    public LocalDbInstanceResource Parent { get; } = instance;
+    public SqlLocalDbInstanceResource Parent { get; } = instance;
 
     public string DatabaseName { get; } = databaseName;
 
