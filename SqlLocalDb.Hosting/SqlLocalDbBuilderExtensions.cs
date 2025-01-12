@@ -21,14 +21,12 @@ public static class SqlLocalDbBuilderExtensions
         string? connectionString = null;
 
         builder.Services.TryAddSingleton<SqlLocalDbService>();
-        builder.Services
-            .AddSqlLocalDB()
-            .AddHealthChecks()
+        builder.Services.AddHealthChecks()
             .AddSqlServer(sp => connectionString ?? throw new InvalidOperationException("Connection string is unavailable"), name: healthCheckKey);
 
         builder.Eventing.Subscribe<BeforeResourceStartedEvent>(async (@event, token) => {
             var dbService = @event.Services.GetRequiredService<SqlLocalDbService>();
-            await dbService.CreateInstance(instanceRes);
+            await dbService.GetOrCreateInstance(instanceRes);
             connectionString = await instanceRes.GetConnectionStringAsync(token);
         });
 

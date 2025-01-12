@@ -4,22 +4,37 @@ using Microsoft.Extensions.Logging;
 
 namespace Aspire.Hosting;
 
-internal class SqlLocalDbService(ISqlLocalDbApi api, ResourceLoggerService loggerService, ResourceNotificationService notifierService)
+internal class SqlLocalDbService(ResourceLoggerService loggerService, ResourceNotificationService notifierService)
 {
-    public ISqlLocalDbInstanceInfo GetInstance(string name) => api.GetOrCreateInstance(name);
+    public class LoggerFactory(ILogger logger) : ILoggerFactory
+    {
+        public void AddProvider(ILoggerProvider provider)
+        { }
 
-    public ISqlLocalDbInstanceInfo GetTemporaryInstance(bool deleteFiles) => api.CreateTemporaryInstance(deleteFiles).GetInstanceInfo();
+        public ILogger CreateLogger(string categoryName) => logger;
 
-    public async Task CreateInstance(SqlLocalDbInstanceResource resource)
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
+    }
+
+    public SqlLocalDbApi GetApi(SqlLocalDbInstanceResource resource)
     {
         var logger = loggerService.GetLogger(resource);
+        var loggerFactory = new LoggerFactory(logger);
+        return new SqlLocalDbApi(loggerFactory);
+    }
 
-        logger.LogInformation("Creating LocalDb instance {name}", resource.Name);
+    public async Task<ISqlLocalDbInstanceInfo> GetOrCreateInstance(SqlLocalDbInstanceResource resource)
+    {
         await notifierService.PublishUpdateAsync(resource, state => state with { State = KnownResourceStates.Starting });
 
-        var instance = GetInstance(resource.Name);
+        using var api = GetApi(resource);
+        var instance = api.GetOrCreateInstance(resource.Name);
         instance.Manage().Start();
 
         await notifierService.PublishUpdateAsync(resource, state => state with { State = KnownResourceStates.Running, StartTimeStamp = DateTime.Now });
+        return instance;
     }
 }
