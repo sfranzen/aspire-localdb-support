@@ -6,7 +6,7 @@ namespace Aspire.Hosting;
 
 internal class DacpacService(ResourceLoggerService loggerService, ResourceNotificationService notifierService)
 {
-    public async Task Deploy(string dacpacPath, SqlLocalDbDatabaseResource target, CancellationToken token)
+    public async Task Deploy(string dacpacPath, SqlLocalDbDatabaseResource target, DacDeployOptions? options, CancellationToken token)
     {
         var logger = loggerService.GetLogger(target);
         void DacService_Message(object? sender, DacMessageEventArgs e) => logger.LogInformation("{message}", e.Message.ToString());
@@ -18,10 +18,10 @@ internal class DacpacService(ResourceLoggerService loggerService, ResourceNotifi
 
             var connectionString = await target.GetConnectionStringAsync(token);
             var dacService = new DacServices(connectionString);
+            var dac = DacPackage.Load(dacpacPath);
 
             dacService.Message += DacService_Message;
-            var dac = DacPackage.Load(dacpacPath);
-            dacService.Deploy(dac, target.DatabaseName, upgradeExisting: true, cancellationToken: token);
+            dacService.Deploy(dac, target.DatabaseName, upgradeExisting: true, options, cancellationToken: token);
             dacService.Message -= DacService_Message;
 
             await notifierService.PublishUpdateAsync(target, state => state with { State = KnownResourceStates.Running, StartTimeStamp = DateTime.Now });

@@ -1,8 +1,10 @@
 ﻿using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using MartinCostello.SqlLocalDb;
 using Microsoft.Build.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.SqlServer.Dac;
 
 namespace Aspire.Hosting;
 
@@ -13,10 +15,11 @@ public static class SqlLocalDbBuilderExtensions
     /// </summary>
     /// <param name="builder">An <see cref="IDistributedApplicationBuilder"/>.</param>
     /// <param name="instanceName">The name of the resource and LocalDb instance.</param>
+    /// <param name="options">The <see cref="SqlLocalDbOptions"/> that will be used to configure the instance.</param>
     /// <returns>An <see cref="IResourceBuilder{T}"/> that can be used to further customize the instance resource.</returns>
-    public static IResourceBuilder<SqlLocalDbInstanceResource> AddSqlLocalDb(this IDistributedApplicationBuilder builder, [ResourceName] string instanceName)
+    public static IResourceBuilder<SqlLocalDbInstanceResource> AddSqlLocalDb(this IDistributedApplicationBuilder builder, [ResourceName] string instanceName, SqlLocalDbOptions? options = null)
     {
-        var instanceRes = new SqlLocalDbInstanceResource(instanceName);
+        var instanceRes = new SqlLocalDbInstanceResource(instanceName, options ?? new());
         var healthCheckKey = $"{instanceName}_check";
         string? connectionString = null;
 
@@ -40,6 +43,18 @@ public static class SqlLocalDbBuilderExtensions
         };
 
         return builder.AddResource(instanceRes).WithInitialState(initialState).WithHealthCheck(healthCheckKey);
+    }
+
+    /// <summary>
+    /// Configures the <see cref="SqlLocalDbOptions"/> of a <see cref="SqlLocalDbInstanceResource"/>.
+    /// </summary>
+    /// <param name="builder">An <see cref="IResourceBuilder{T}"/> representing the LocalDb instance.</param>
+    /// <param name="configure">Delegate for configuring the instance options.</param>
+    /// <returns>An <see cref="IResourceBuilder{T}"/> that can be used to further customize the instance resource.</returns>
+    public static IResourceBuilder<SqlLocalDbInstanceResource> WithOptions(this IResourceBuilder<SqlLocalDbInstanceResource> builder, Action<SqlLocalDbOptions> configure)
+    {
+        configure(builder.Resource.Options);
+        return builder;
     }
 
     /// <summary>
@@ -72,14 +87,16 @@ public static class SqlLocalDbBuilderExtensions
     /// </summary>
     /// <param name="builder">An <see cref="IResourceBuilder{T}"/> representing the LocalDb database to publish to.</param>
     /// <param name="dacpacPath">The path to the .dacpac file.</param>
+    /// <param name="options">The <see cref="DacDeployOptions"/> to use during deployment. Default options will be used if no value is provided.</param>
     /// <returns>An <see cref="IResourceBuilder{T}"/> that can be used to further customize the database resource.</returns>
-    public static IResourceBuilder<SqlLocalDbDatabaseResource> WithDacpac(this IResourceBuilder<SqlLocalDbDatabaseResource> builder, string dacpacPath)
+    public static IResourceBuilder<SqlLocalDbDatabaseResource> WithDacpac(this IResourceBuilder<SqlLocalDbDatabaseResource> builder, string dacpacPath, DacDeployOptions? options = null)
     {
         var dbResource = builder.Resource;
+
         Task deploy(IServiceProvider services, CancellationToken token)
         {
             var deployer = services.GetRequiredService<DacpacService>();
-            return deployer.Deploy(dacpacPath, dbResource, token);
+            return deployer.Deploy(dacpacPath, dbResource, options, token);
         }
 
         builder.ApplicationBuilder.Services.TryAddSingleton<DacpacService>();
@@ -103,11 +120,12 @@ public static class SqlLocalDbBuilderExtensions
     /// </summary>
     /// <param name="builder">An <see cref="IResourceBuilder{T}"/> representing the SQL Server Database project to publish.</param>
     /// <param name="target">An <see cref="IResourceBuilder{T}"/> representing the target <see cref="SqlLocalDbDatabaseResource"/> to publish the SQL Server Database project to.</param>
+    /// <param name="options">The <see cref="DacDeployOptions"/> to use during deployment. Default options will be used if no value is provided.</param>
     /// <returns>An <see cref="IResourceBuilder{T}"/> that can be used to further customize the project resource.</returns>
-    public static IResourceBuilder<SqlProjectResource> WithReference(this IResourceBuilder<SqlProjectResource> builder, IResourceBuilder<SqlLocalDbDatabaseResource> target)
+    public static IResourceBuilder<SqlProjectResource> WithReference(this IResourceBuilder<SqlProjectResource> builder, IResourceBuilder<SqlLocalDbDatabaseResource> target, DacDeployOptions? options = null)
     {
         var path = GetDacpacPath(builder.Resource);
-        target.WithDacpac(path);
+        target.WithDacpac(path, options);
         builder.WaitFor(target);
         return builder;
     }
